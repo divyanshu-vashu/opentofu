@@ -51,9 +51,8 @@ func TestSkipDestroy_plan_resourceReplace(t *testing.T) {
 	root.SetResourceInstanceCurrent(
 		mustResourceInstanceAddr("aws_instance.foo").Resource,
 		&states.ResourceInstanceObjectSrc{
-			Status:      states.ObjectReady,
-			AttrsJSON:   []byte(`{"id":"baz","require_new":"old","type":"aws_instance"}`),
-			SkipDestroy: true,
+			Status:    states.ObjectReady,
+			AttrsJSON: []byte(`{"id":"baz","require_new":"old","type":"aws_instance"}`),
 		},
 		mustProviderConfig(`provider["registry.opentofu.org/hashicorp/aws"]`),
 		addrs.NoKey,
@@ -77,6 +76,10 @@ func TestSkipDestroy_plan_resourceReplace(t *testing.T) {
 	change := plan.Changes.Resources[0]
 	if change.Action != plans.CreateAndForget {
 		t.Fatalf("\nexpected action: %q\ngot:             %q\n", plans.Forget, change.Action)
+	}
+
+	if !plan.PlannedState.RootModule().Resources["aws_instance.foo"].Instance(addrs.NoKey).Current.SkipDestroy {
+		t.Fatal("skip_destroy wasn't set correctly in state")
 	}
 }
 
