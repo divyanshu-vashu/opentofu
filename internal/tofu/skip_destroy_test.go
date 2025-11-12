@@ -9,7 +9,7 @@ import (
 	"github.com/opentofu/opentofu/internal/states"
 )
 
-func TestSkipDestroy_plan_stateFlagCheck(t *testing.T) {
+func TestSkipDestroy_planAndApply_stateFlagChecks(t *testing.T) {
 	m := testModule(t, "skip-destroy")
 	p := testProvider("aws")
 	p.PlanResourceChangeFn = testDiffFn
@@ -39,9 +39,17 @@ func TestSkipDestroy_plan_stateFlagCheck(t *testing.T) {
 	if !plan.PlannedState.RootModule().Resources["aws_instance.foo"].Instance(addrs.NoKey).Current.SkipDestroy {
 		t.Fatal("skip_destroy wasn't set correctly in state")
 	}
+
+	appliedState, diags := ctx.Apply(t.Context(), plan, m, nil)
+	if diags.HasErrors() {
+		t.Fatalf("unexpected errors: %s", diags.Err())
+	}
+	if !appliedState.RootModule().Resources["aws_instance.foo"].Instance(addrs.NoKey).Current.SkipDestroy {
+		t.Fatal("skip_destroy wasn't set correctly in state")
+	}
 }
 
-func TestSkipDestroy_plan_resourceReplace(t *testing.T) {
+func TestSkipDestroy_resourceReplace(t *testing.T) {
 	m := testModule(t, "skip-destroy")
 	p := testProvider("aws")
 	p.PlanResourceChangeFn = testDiffFn
@@ -78,12 +86,22 @@ func TestSkipDestroy_plan_resourceReplace(t *testing.T) {
 		t.Fatalf("\nexpected action: %q\ngot:             %q\n", plans.Forget, change.Action)
 	}
 
-	if !plan.PlannedState.RootModule().Resources["aws_instance.foo"].Instance(addrs.NoKey).Current.SkipDestroy {
+	appliedState, diags := ctx.Apply(t.Context(), plan, m, nil)
+	if diags.HasErrors() {
+		t.Fatalf("unexpected errors: %s", diags.Err())
+	}
+
+	// Applied state after replace with skip destroy set in the config should contain a single resource with the skip_destroy flag set
+	if !appliedState.RootModule().Resources["aws_instance.foo"].Instance(addrs.NoKey).Current.SkipDestroy {
 		t.Fatal("skip_destroy wasn't set correctly in state")
+	}
+
+	if len(appliedState.RootModule().Resources) != 1 {
+		t.Fatalf("expected 1 resource; got %d", len(appliedState.RootModule().Resources))
 	}
 }
 
-func TestSkipDestroy_plan_destroy(t *testing.T) {
+func TestSkipDestroy_destroy(t *testing.T) {
 	m := testModule(t, "skip-destroy")
 	p := testProvider("aws")
 	p.PlanResourceChangeFn = testDiffFn
@@ -123,9 +141,18 @@ func TestSkipDestroy_plan_destroy(t *testing.T) {
 		t.Fatalf("\nexpected action: %q\ngot:             %q\n", plans.Forget, change.Action)
 	}
 
+	appliedState, diags := ctx.Apply(t.Context(), plan, m, nil)
+	if diags.HasErrors() {
+		t.Fatalf("unexpected errors: %s", diags.Err())
+	}
+
+	if !appliedState.Empty() {
+		t.Fatalf("\nexpected plannedState to be empty; got %q\n", appliedState.String())
+	}
+
 }
 
-func TestSkipDestroy_plan_removedFromConfig(t *testing.T) {
+func TestSkipDestroy_removedFromConfig(t *testing.T) {
 	m := testModule(t, "empty")
 	p := testProvider("aws")
 	p.PlanResourceChangeFn = testDiffFn
@@ -205,15 +232,15 @@ func TestSkipDestroy_plan_deposedAndOrphaned(t *testing.T) {
 		t.Fatalf("unexpected errors: %s", diags.Err())
 	}
 
-	if len(plan.Changes.Resources) != 1 {
-		t.Fatalf("expected 1 resource; got %d", len(plan.Changes.Resources))
+	if len(plan.Changes.Resources) != 2 {
+		t.Fatalf("expected 2 resource; got %d", len(plan.Changes.Resources))
 	}
 
-	change := plan.Changes.Resources[0]
-	if change.Action != plans.Forget {
-		t.Fatalf("\nexpected action: %q\ngot:             %q\n", plans.Forget, change.Action)
+	for _, change := range plan.Changes.Resources {
+		if change.Action != plans.Forget {
+			t.Fatalf("\nexpected action: %q\ngot: %q\n", plans.Forget, change.Action)
+		}
 	}
-
 	if !plan.PlannedState.Empty() {
 		t.Fatalf("expected planned state to be empty; got %q\n", plan.PlannedState.String())
 	}
