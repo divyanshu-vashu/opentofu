@@ -83,7 +83,7 @@ type ManagedResource struct {
 }
 
 
-// ShouldSkipDestroy returns if the manage resource has explicitly set destroy = false
+// ShouldSkipDestroy returns `true` if the managed resource has explicitly set destroy = false
 func (r *ManagedResource) ShouldSkipDestroy() bool {
 	return r.DestroySet && !r.Destroy
 }
