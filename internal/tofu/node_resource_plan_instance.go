@@ -326,7 +326,7 @@ func (n *NodePlannableResourceInstance) managedResourceExecute(ctx context.Conte
 			// updated value used for further graph execution. However, with
 			// "refresh=false", refreshState is not being written and then
 			// some resources with updated configuration could be detached
-			// due to missaligned create_before_destroy in different graph nodes.
+			// due to missaligned create_before_destroy and skip_destroy in different graph nodes.
 			instanceRefreshState.CreateBeforeDestroy = n.Config.Managed.CreateBeforeDestroy || n.ForceCreateBeforeDestroy
 			instanceRefreshState.SkipDestroy = !n.Config.Managed.Destroy
 
