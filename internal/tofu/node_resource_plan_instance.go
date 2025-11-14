@@ -328,7 +328,7 @@ func (n *NodePlannableResourceInstance) managedResourceExecute(ctx context.Conte
 			// some resources with updated configuration could be detached
 			// due to missaligned create_before_destroy and skip_destroy in different graph nodes.
 			instanceRefreshState.CreateBeforeDestroy = n.Config.Managed.CreateBeforeDestroy || n.ForceCreateBeforeDestroy
-			instanceRefreshState.SkipDestroy = !n.Config.Managed.Destroy
+			instanceRefreshState.SkipDestroy = n.Config.Managed.SkipDestroy
 
 			if n.skipRefresh {
 				if prevCreateBeforeDestroy != instanceRefreshState.CreateBeforeDestroy || prevSkipDestroy != instanceRefreshState.SkipDestroy {
