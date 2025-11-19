@@ -147,12 +147,6 @@ func (n *NodePlanDestroyableResourceInstance) managedResourceExecute(ctx context
 	if diags.HasErrors() {
 		return diags
 	}
-
-	// In case we are forgetting a resource during the destroy mode, we need to give an error.
-	if op == walkPlanDestroy && change.Action == plans.Forget {
-		return diags.Append(tfdiags.Sourceless(tfdiags.Error, "Err1", "err"))
-	}
-
 	diags = diags.Append(n.checkPreventDestroy(ctx, evalCtx, change))
 	return diags
 }
