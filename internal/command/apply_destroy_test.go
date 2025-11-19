@@ -435,7 +435,7 @@ func TestApply_destroySkipInConfigAndState(t *testing.T) {
 	}
 	code := c.Run(args)
 	output := done(t)
-	if code != 1 {
+	if code != 0 {
 		t.Log(output.Stdout())
 		t.Fatalf("bad: %d\n\n%s", code, output.Stderr())
 	}
