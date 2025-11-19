@@ -87,8 +87,8 @@ func TestSkipDestroy_resourceReplace(t *testing.T) {
 	}
 
 	change := plan.Changes.Resources[0]
-	if change.Action != plans.CreateAndForget {
-		t.Fatalf("\n%-15s: %10q\n%-15s: %10q\n", "expected action", plans.CreateAndForget, "got", change.Action)
+	if change.Action != plans.ForgetAndCreate {
+		t.Fatalf("\n%-15s: %10q\n%-15s: %10q\n", "expected action", plans.ForgetAndCreate, "got", change.Action)
 	}
 
 	appliedState, diags := ctx.Apply(t.Context(), plan, m, nil)
@@ -243,7 +243,7 @@ func TestSkipDestroy_plan_deposedAndOrphaned(t *testing.T) {
 
 	for _, change := range plan.Changes.Resources {
 		if change.Action != plans.Forget {
-		t.Fatalf("\n%-15s: %10q\n%-15s: %10q\n", "expected action", plans.Forget, "got", change.Action)
+			t.Fatalf("\n%-15s: %10q\n%-15s: %10q\n", "expected action", plans.Forget, "got", change.Action)
 		}
 	}
 	if !plan.PlannedState.Empty() {
@@ -299,7 +299,7 @@ func TestSkipDestroy_plan_deposedAndInConfig_deposedWithoutFlag(t *testing.T) {
 		if change.DeposedKey.String() != "" {
 			// Check we forget the deposed instance
 			if change.Action != plans.Forget {
-		t.Fatalf("\n%-15s: %10q\n%-15s: %10q\n", "expected action", plans.Forget, "got", change.Action)
+				t.Fatalf("\n%-15s: %10q\n%-15s: %10q\n", "expected action", plans.Forget, "got", change.Action)
 			}
 		} else {
 			// For the resource still in config we should have no-op
